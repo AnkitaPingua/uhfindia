@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { motion } from "framer-motion";
 import { ArrowLeft, Award, BookOpen, Clock, HeartHandshake, Megaphone, ShieldCheck, Trophy, Users, Crown, Medal, CheckCircle, ArrowRight } from "lucide-react";
 import SmoothScroll from "@/components/SmoothScroll";
 import { useRouter } from "next/navigation";
+import { getCountries, getCountryCallingCode } from 'react-phone-number-input/input';
+import { createClient } from "@/lib/supabase/client";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -91,6 +93,74 @@ export default function InternshipExperience() {
   ];
 
   const [submitted, setSubmitted] = useState(false);
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [countryCode, setCountryCode] = useState("+91");
+  const [loading, setLoading] = useState(false);
+
+  const callingCodes = useMemo(() => {
+    return Array.from(new Set(getCountries().map(c => `+${getCountryCallingCode(c)}`)))
+      .sort((a, b) => parseInt(a.replace(/\D/g, '')) - parseInt(b.replace(/\D/g, '')));
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!resumeFile) {
+      alert("Please upload your resume.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const formData = new FormData(e.currentTarget);
+      const full_name = formData.get("full_name") as string;
+      const email = formData.get("email") as string;
+      const rawPhone = formData.get("phone") as string;
+      const city = formData.get("city") as string;
+      const institution = formData.get("institution") as string;
+      const degree = formData.get("degree") as string;
+      const motivation = formData.get("motivation") as string;
+      const linkedin = formData.get("linkedin") as string;
+
+      const supabase = createClient();
+
+      const fileName = `${Date.now()}-${resumeFile.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from("intern-resumes")
+        .upload(fileName, resumeFile);
+
+      if (uploadError) throw uploadError;
+
+      const resume_url = fileName;
+
+      const response = await fetch("/api/internship/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          full_name,
+          email,
+          phone: `${countryCode} ${rawPhone}`,
+          college: degree ? `${institution} - ${degree}` : institution,
+          city,
+          linkedin,
+          motivation,
+          resume_url,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error(data);
+        throw new Error(data.error || "Application failed");
+      }
+      setSubmitted(true);
+    } catch (error) {
+      console.error("Submission error:", error);
+      alert("Something went wrong submitting your application. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SmoothScroll>
@@ -284,57 +354,75 @@ export default function InternshipExperience() {
 
             <div className="w-full lg:w-[60%] bg-[#151515] border border-white/5 p-8 md:p-12 rounded-xl">
               {!submitted ? (
-                <form className="flex flex-col gap-6" onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }}>
+                <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 form-element">
                     <div className="flex flex-col gap-2">
-                      <label className="font-inter text-[11px] text-[#9CA3AF] tracking-[0.1em] uppercase">Full Name</label>
-                      <input required type="text" className="bg-[#0B0B0B] border border-white/10 rounded-lg px-4 h-[48px] text-[14px] text-white focus:outline-none focus:border-[#FF9A3C] transition-colors" />
+                      <label className="font-inter text-[11px] text-[#9CA3AF] tracking-[0.1em] uppercase">Full Name<span className="text-[#FF9A3C] ml-1">*</span></label>
+                      <input name="full_name" required type="text" className="bg-[#0B0B0B] border border-white/10 rounded-lg px-4 h-[48px] text-[14px] text-white focus:outline-none focus:border-[#FF9A3C] transition-colors" />
                     </div>
                     <div className="flex flex-col gap-2">
-                      <label className="font-inter text-[11px] text-[#9CA3AF] tracking-[0.1em] uppercase">Email</label>
-                      <input required type="email" className="bg-[#0B0B0B] border border-white/10 rounded-lg px-4 h-[48px] text-[14px] text-white focus:outline-none focus:border-[#FF9A3C] transition-colors" />
+                      <label className="font-inter text-[11px] text-[#9CA3AF] tracking-[0.1em] uppercase">Email<span className="text-[#FF9A3C] ml-1">*</span></label>
+                      <input name="email" required type="email" className="bg-[#0B0B0B] border border-white/10 rounded-lg px-4 h-[48px] text-[14px] text-white focus:outline-none focus:border-[#FF9A3C] transition-colors" />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 form-element">
                     <div className="flex flex-col gap-2">
-                      <label className="font-inter text-[11px] text-[#9CA3AF] tracking-[0.1em] uppercase">WhatsApp Number</label>
-                      <input required type="tel" className="bg-[#0B0B0B] border border-white/10 rounded-lg px-4 h-[48px] text-[14px] text-white focus:outline-none focus:border-[#FF9A3C] transition-colors" />
+                      <label className="font-inter text-[11px] text-[#9CA3AF] tracking-[0.1em] uppercase">WhatsApp Number<span className="text-[#FF9A3C] ml-1">*</span></label>
+                      <div className="flex gap-2">
+                        <select
+                          value={countryCode}
+                          onChange={(e) => setCountryCode(e.target.value)}
+                          className="bg-[#0B0B0B] border border-white/10 rounded-lg px-2 w-[80px] h-[48px] text-[14px] text-white focus:outline-none focus:border-[#FF9A3C] transition-colors appearance-none text-center cursor-pointer hover:bg-white/5"
+                        >
+                          {callingCodes.map(code => (
+                            <option key={code} value={code} className="bg-[#0B0B0B] text-white">{code}</option>
+                          ))}
+                        </select>
+                        <input name="phone" required type="tel" pattern="[0-9]{10}" maxLength={10} title="Please enter exactly 10 digits" className="bg-[#0B0B0B] border border-white/10 rounded-lg px-4 h-[48px] text-[14px] text-white focus:outline-none focus:border-[#FF9A3C] transition-colors flex-1" />
+                      </div>
                     </div>
                     <div className="flex flex-col gap-2">
-                      <label className="font-inter text-[11px] text-[#9CA3AF] tracking-[0.1em] uppercase">City</label>
-                      <input required type="text" className="bg-[#0B0B0B] border border-white/10 rounded-lg px-4 h-[48px] text-[14px] text-white focus:outline-none focus:border-[#FF9A3C] transition-colors" />
+                      <label className="font-inter text-[11px] text-[#9CA3AF] tracking-[0.1em] uppercase">City<span className="text-[#FF9A3C] ml-1">*</span></label>
+                      <input name="city" required type="text" className="bg-[#0B0B0B] border border-white/10 rounded-lg px-4 h-[48px] text-[14px] text-white focus:outline-none focus:border-[#FF9A3C] transition-colors" />
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-2 form-element">
-                    <label className="font-inter text-[11px] text-[#9CA3AF] tracking-[0.1em] uppercase">College / Occupation</label>
-                    <input required type="text" className="bg-[#0B0B0B] border border-white/10 rounded-lg px-4 h-[48px] text-[14px] text-white focus:outline-none focus:border-[#FF9A3C] transition-colors" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 form-element">
+                    <div className="flex flex-col gap-2">
+                      <label className="font-inter text-[11px] text-[#9CA3AF] tracking-[0.1em] uppercase">Institution<span className="text-[#FF9A3C] ml-1">*</span></label>
+                      <input name="institution" required type="text" className="bg-[#0B0B0B] border border-white/10 rounded-lg px-4 h-[48px] text-[14px] text-white focus:outline-none focus:border-[#FF9A3C] transition-colors" />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="font-inter text-[11px] text-[#9CA3AF] tracking-[0.1em] uppercase">Degree</label>
+                      <input name="degree" type="text" className="bg-[#0B0B0B] border border-white/10 rounded-lg px-4 h-[48px] text-[14px] text-white focus:outline-none focus:border-[#FF9A3C] transition-colors" />
+                    </div>
                   </div>
 
                   <div className="flex flex-col gap-2 form-element">
                     <label className="font-inter text-[11px] text-[#9CA3AF] tracking-[0.1em] uppercase">Why do you want to join?</label>
-                    <textarea required rows={4} className="bg-[#0B0B0B] border border-white/10 rounded-lg p-4 text-[14px] text-white focus:outline-none focus:border-[#FF9A3C] transition-colors resize-none"></textarea>
+                    <textarea name="motivation" rows={4} className="bg-[#0B0B0B] border border-white/10 rounded-lg p-4 text-[14px] text-white focus:outline-none focus:border-[#FF9A3C] transition-colors resize-none"></textarea>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 form-element">
-                    <div className="flex flex-col gap-2">
-                      <label className="font-inter text-[11px] text-[#9CA3AF] tracking-[0.1em] uppercase">Availability (Hrs/Week)</label>
-                      <select required className="bg-[#0B0B0B] border border-white/10 rounded-lg px-4 h-[48px] text-[14px] text-white focus:outline-none focus:border-[#FF9A3C] transition-colors appearance-none">
-                        <option value="">Select Hours</option>
-                        <option value="5-10">5-10 Hours</option>
-                        <option value="10-15">10-15 Hours</option>
-                        <option value="15+">15+ Hours</option>
-                      </select>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <label className="font-inter text-[11px] text-[#9CA3AF] tracking-[0.1em] uppercase">LinkedIn / Social URL</label>
-                      <input type="url" className="bg-[#0B0B0B] border border-white/10 rounded-lg px-4 h-[48px] text-[14px] text-white focus:outline-none focus:border-[#FF9A3C] transition-colors" />
-                    </div>
+                  <div className="flex flex-col gap-2 form-element">
+                    <label className="font-inter text-[11px] text-[#9CA3AF] tracking-[0.1em] uppercase">Social Media URL<span className="text-[#FF9A3C] ml-1">*</span></label>
+                    <input name="linkedin" required type="url" className="bg-[#0B0B0B] border border-white/10 rounded-lg px-4 h-[48px] text-[14px] text-white focus:outline-none focus:border-[#FF9A3C] transition-colors" />
                   </div>
 
-                  <button type="submit" className="form-element mt-6 w-full bg-[#FF9A3C] text-[#0B0B0B] font-inter font-bold text-[12px] tracking-[0.2em] uppercase rounded-lg h-[56px] hover:brightness-110 transition-all flex items-center justify-center gap-2">
-                    Submit Application
+                  <div className="flex flex-col gap-2 form-element">
+                    <label className="font-inter text-[11px] text-[#9CA3AF] tracking-[0.1em] uppercase">Resume<span className="text-[#FF9A3C] ml-1">*</span></label>
+                    <input
+                      name="resume_url"
+                      required
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
+                      className="bg-[#0B0B0B] border border-white/10 rounded-lg px-4 h-[48px] text-[14px] text-[#9CA3AF] focus:outline-none focus:border-[#FF9A3C] transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[11px] file:font-inter file:font-medium file:bg-white/10 file:text-white hover:file:bg-white/20 pt-[6px]"
+                    />
+                  </div>
+
+                  <button type="submit" disabled={loading} className="form-element mt-6 w-full bg-[#FF9A3C] text-[#0B0B0B] font-inter font-bold text-[12px] tracking-[0.2em] uppercase rounded-lg h-[56px] hover:brightness-110 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                    {loading ? "Submitting..." : "Submit Application"}
                   </button>
                 </form>
               ) : (

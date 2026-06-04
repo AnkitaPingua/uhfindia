@@ -14,21 +14,20 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const navItems = ["Home", "About", "Stories", "Events", "Volunteer", "Donate", "Log In", "Sign Up"];
-  const isButton = (item: string) => ["Donate", "Log In", "Sign Up"].includes(item);
+  const navItems = ["Home", "About", "Stories", "Events", "Volunteer", "Donate", "Log In"];
+  const isButton = (item: string) => ["Donate", "Log In"].includes(item);
 
   const getHref = (item: string) => {
     switch (item) {
       case "Log In": return "/login";
-      case "Sign Up": return "/signup";
       case "Donate": return "/donate";
       case "Home": return "/";
       default: return `/${item.toLowerCase()}`;
     }
   };
 
-  // Hide the navbar entirely on login and signup pages to avoid clashing with the back button
-  if (pathname === "/login" || pathname === "/signup") {
+  // Hide the navbar entirely on login page to avoid clashing with the back button
+  if (pathname === "/login") {
     return null;
   }
 

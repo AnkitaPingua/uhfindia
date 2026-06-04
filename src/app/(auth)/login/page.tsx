@@ -112,12 +112,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="text-white/40 text-xs mt-8">
-          Don&apos;t have an account?{" "}
-          <Link href="/signup" className="text-[#f9a826] hover:text-[#e89a20] transition-colors">
-            Sign up
-          </Link>
-        </p>
+
       </div>
     </div>
   );

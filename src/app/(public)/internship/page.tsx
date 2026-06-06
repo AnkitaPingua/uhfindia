@@ -339,7 +339,7 @@ export default function InternshipExperience() {
               <div className="space-y-8 mt-4">
                 <div>
                   <h4 className="font-inter font-medium text-[11px] uppercase tracking-[0.2em] text-[#9CA3AF] mb-2">Duration</h4>
-                  <p className="font-inter text-[14px] text-[#F5F5F5]">1 to 3 Months (Extendable based on performance)</p>
+                  <p className="font-inter text-[14px] text-[#F5F5F5]">1 Month</p>
                 </div>
                 <div>
                   <h4 className="font-inter font-medium text-[11px] uppercase tracking-[0.2em] text-[#9CA3AF] mb-2">Structure</h4>
@@ -405,8 +405,8 @@ export default function InternshipExperience() {
                   </div>
 
                   <div className="flex flex-col gap-2 form-element">
-                    <label className="font-inter text-[11px] text-[#9CA3AF] tracking-[0.1em] uppercase">Social Media URL<span className="text-[#FF9A3C] ml-1">*</span></label>
-                    <input name="linkedin" required type="url" className="bg-[#0B0B0B] border border-white/10 rounded-lg px-4 h-[48px] text-[14px] text-white focus:outline-none focus:border-[#FF9A3C] transition-colors" />
+                    <label className="font-inter text-[11px] text-[#9CA3AF] tracking-[0.1em] uppercase">Social Media URL<span className="text-[#FF9A3C] ml-1"></span></label>
+                    <input name="linkedin" type="url" className="bg-[#0B0B0B] border border-white/10 rounded-lg px-4 h-[48px] text-[14px] text-white focus:outline-none focus:border-[#FF9A3C] transition-colors" />
                   </div>
 
                   <div className="flex flex-col gap-2 form-element">

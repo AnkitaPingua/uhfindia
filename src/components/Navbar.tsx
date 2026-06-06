@@ -83,7 +83,7 @@ export default function Navbar() {
               href={getHref(item)}
               className={`nav-link font-inter font-medium text-[11px] tracking-[0.2em] uppercase transition-all duration-300 relative group ${
                 item === "Donate"
-                  ? "border border-[#F1A42F] text-[#F1A42F] px-5 h-[34px] flex items-center rounded-full hover:bg-[#F1A42F] hover:text-[#0B0B0B]"
+                  ? "bg-[#FF9A3C] text-[#0B0B0B] border border-[#FF9A3C] px-5 h-[34px] flex items-center rounded-full hover:brightness-110"
                   : isButton(item)
                   ? "border border-white/25 text-white px-5 h-[34px] flex items-center rounded-full hover:bg-white hover:text-black"
                   : "text-white/75 hover:text-white"

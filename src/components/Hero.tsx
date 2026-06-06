@@ -94,12 +94,15 @@ export default function Hero() {
             United H.O.P.E Foundation works with the deprieved children, women and families in villages where school books, warm meals and medical care still feel like distant dreams. We don&apos;t promise miracles. We show up.
           </p>
 
-          <div ref={btnsRef} className="mt-12 flex flex-col sm:flex-row items-start sm:items-center gap-6">
-            <button onClick={handleDonateClick} className="bg-white text-black font-inter font-semibold text-[11px] tracking-[0.18em] uppercase rounded-full h-[48px] px-8 flex items-center justify-center hover:bg-gray-200 transition-colors">
-              DONATE <span className="ml-3 font-normal text-[16px] leading-none mb-[2px]">↗</span>
+          <div ref={btnsRef} className="mt-12 flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
+            <button onClick={handleInternshipClick} className="bg-transparent border border-white/30 text-white font-inter font-semibold text-[12px] tracking-[0.18em] uppercase rounded-full h-[56px] px-10 transition-all duration-500 hover:-translate-y-1 hover:bg-[#D95B5B] hover:border-[#D95B5B] hover:shadow-[0_10px_30px_rgba(217,91,91,0.4)] w-full sm:w-auto">
+              BECOME A CHANGEMAKER INTERN
             </button>
-            <button onClick={handleInternshipClick} className="bg-transparent border border-white/30 text-white font-inter font-semibold text-[11px] tracking-[0.18em] uppercase rounded-full h-[48px] px-8 hover:bg-white/10 transition-all">
-              BECOME A FUNDRAISING INTERN
+            <button onClick={handleDonateClick} className="relative overflow-hidden group bg-white text-black font-inter font-bold text-[13px] tracking-[0.2em] uppercase rounded-full h-[56px] px-12 flex items-center justify-center transition-all duration-500 hover:-translate-y-1 hover:scale-[1.02] hover:bg-[#ECA543] hover:shadow-[0_10px_30px_rgba(236,165,67,0.5)] w-full sm:w-auto">
+              <span className="relative z-10 flex items-center">
+                DONATE <span className="ml-3 font-normal text-[18px] leading-none mb-[2px] group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300"></span>
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out"></div>
             </button>
           </div>
         </div>
